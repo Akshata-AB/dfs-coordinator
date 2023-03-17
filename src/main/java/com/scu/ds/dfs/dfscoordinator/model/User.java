@@ -1,6 +1,7 @@
 package com.scu.ds.dfs.dfscoordinator.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
@@ -12,9 +13,11 @@ public class User {
     @ApiModelProperty(example = "1234")
     private String id;
 
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @ApiModelProperty(example = "ani_kadam")
     private String username;
 
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @ApiModelProperty(example = "secret")
     private String password;
 
