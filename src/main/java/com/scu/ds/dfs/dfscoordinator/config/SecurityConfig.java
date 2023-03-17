@@ -19,7 +19,7 @@ import org.springframework.session.jdbc.config.annotation.web.http.EnableJdbcHtt
 
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 @EnableWebSecurity
-@EnableJdbcHttpSession
+//@EnableJdbcHttpSession
 @Configuration
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 

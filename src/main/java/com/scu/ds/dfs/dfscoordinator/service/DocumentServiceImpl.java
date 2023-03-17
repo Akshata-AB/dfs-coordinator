@@ -1,9 +1,12 @@
 package com.scu.ds.dfs.dfscoordinator.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.scu.ds.dfs.dfscoordinator.exception.DocumentServiceException;
 import com.scu.ds.dfs.dfscoordinator.model.ChunkMapping;
 import com.scu.ds.dfs.dfscoordinator.model.FileMetadata;
 import lombok.extern.java.Log;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
@@ -25,8 +28,10 @@ import java.time.Duration;
 @Component
 public class DocumentServiceImpl implements DocumentService{
 
-    WebClient webClient;
-    public DocumentServiceImpl(@Value("${document.base.url}") String documentBaseUrl){
+    private WebClient webClient;
+
+    private ObjectMapper objectMapper;
+    public DocumentServiceImpl(@Value("${document.base.url}") String documentBaseUrl, @Autowired ObjectMapper objectMapper){
         webClient = WebClient
                 .builder()
                 .baseUrl(documentBaseUrl)
@@ -36,16 +41,19 @@ public class DocumentServiceImpl implements DocumentService{
                         .maxInMemorySize(16 * 1024 * 1024))
                         .build())
                 .build();
+        this.objectMapper = objectMapper;
     }
 
     @Override
     public String uploadDocument(MultipartFile file, FileMetadata fileMetadata) {
+
+        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
         log.info("In DocumentServiceImpl");
         try {
             MultipartBodyBuilder builder = new MultipartBodyBuilder();
             builder.part("file", new ByteArrayResource(file.getBytes())).filename(file.getName());
             builder.part("documentId", fileMetadata.getFileId());
-            builder.part("chunkToWorkerMap",fileMetadata.getChunkWorkerNodeMap());
+            builder.part("chunkToWorkerMap", ow.writeValueAsString(fileMetadata.getChunkWorkerNodeMap()));
             builder.part("chunkSize",fileMetadata.getChunkSize());
             log.info("Calling Document service to upload file " + file.getName());
 
@@ -137,6 +145,6 @@ public class DocumentServiceImpl implements DocumentService{
                     return true;
                 })
                 .onRetryExhaustedThrow(((retryBackoffSpec, retrySignal) -> retrySignal.failure()))
-                .doBeforeRetry(retrySignal -> log.info("Executing retry attempt number:"+retrySignal.totalRetries() + 1));
+                .doBeforeRetry(retrySignal -> log.info("Executing retry attempt number:"+(int)(retrySignal.totalRetries() + 1)));
     }
 }
