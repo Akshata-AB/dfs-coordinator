@@ -58,7 +58,13 @@ public class DocumentController {
     public ResponseEntity downloadDocument(@PathVariable String fileName) {
 
         ChunkMapping chunkMapping = metadataService.getChunkDetailsForDownload(fileName);
-        byte[] data = documentService.downloadDocument(chunkMapping);
+        byte[] data = null;
+        try {
+            data = documentService.downloadDocument(chunkMapping);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
         //byte[] data = documentService.downloadDocument(fileName);
         ByteArrayResource fileResource = new ByteArrayResource(data);
         return ResponseEntity.ok().contentLength(data.length).header(HttpHeaders.CONTENT_TYPE, "application/octet-stream").header(HttpHeaders.CONTENT_DISPOSITION,
@@ -66,10 +72,10 @@ public class DocumentController {
     }
 
     @ResponseBody
-    @GetMapping("/delete/{fileName:.+}")
+    @DeleteMapping("/delete/{fileName:.+}")
     public ResponseEntity deleteDocument(@PathVariable String fileName) {
 
-        ChunkMapping chunkMapping = metadataService.getChunkDetailsForDownload(fileName);
+        ChunkMapping chunkMapping = metadataService.getChunkDetailsForDelete(fileName);
         String status = documentService.deleteDocument(chunkMapping);
 
         return ResponseEntity.ok(status);

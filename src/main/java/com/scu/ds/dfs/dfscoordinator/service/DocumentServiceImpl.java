@@ -1,5 +1,6 @@
 package com.scu.ds.dfs.dfscoordinator.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.scu.ds.dfs.dfscoordinator.exception.DocumentServiceException;
@@ -47,13 +48,19 @@ public class DocumentServiceImpl implements DocumentService{
     @Override
     public String uploadDocument(MultipartFile file, FileMetadata fileMetadata) {
 
-        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+        String payload = null;
+        try {
+            payload = objectMapper.writeValueAsString(fileMetadata.getChunkWorkerNodeMap());
+            payload = payload.replaceAll("/", "\\\\" + "/");
+        } catch (JsonProcessingException e) {
+        }
+
         log.info("In DocumentServiceImpl");
         try {
             MultipartBodyBuilder builder = new MultipartBodyBuilder();
             builder.part("file", new ByteArrayResource(file.getBytes())).filename(file.getName());
             builder.part("documentId", fileMetadata.getFileId());
-            builder.part("chunkToWorkerMap", ow.writeValueAsString(fileMetadata.getChunkWorkerNodeMap()));
+            builder.part("chunkToWorkerMap", payload);
             builder.part("chunkSize",fileMetadata.getChunkSize());
             log.info("Calling Document service to upload file " + file.getName());
 
@@ -75,10 +82,17 @@ public class DocumentServiceImpl implements DocumentService{
     public byte[] downloadDocument(ChunkMapping chunkMapping) {
         log.info("Calling Document service to download file " );
 
+        String payload = null;
+        try {
+            payload = objectMapper.writeValueAsString(chunkMapping.getChunkWorkerNodeMap());
+            payload = payload.replaceAll("/", "\\\\" + "/");
+        } catch (JsonProcessingException e) {
+        }
+
         MultipartBodyBuilder builder = new MultipartBodyBuilder();
 
         builder.part("documentId", chunkMapping.getFileId());
-        builder.part("chunkToWorkerMap",chunkMapping.getChunkWorkerNodeMap());
+        builder.part("chunkToWorkerMap",payload);
 
         log.info("Calling Document service to download file ");
 
@@ -93,10 +107,18 @@ public class DocumentServiceImpl implements DocumentService{
 
     @Override
     public String deleteDocument(ChunkMapping chunkMapping) {
+
+        String payload = null;
+        try {
+            payload = objectMapper.writeValueAsString(chunkMapping.getChunkWorkerNodeMap());
+            payload = payload.replaceAll("/", "\\\\" + "/");
+        } catch (JsonProcessingException e) {
+        }
+
         MultipartBodyBuilder builder = new MultipartBodyBuilder();
 
         builder.part("documentId", chunkMapping.getFileId());
-        builder.part("chunkToWorkerMap",chunkMapping.getChunkWorkerNodeMap());
+        builder.part("chunkToWorkerMap",payload);
 
         log.info("Calling Document service to download file ");
 
