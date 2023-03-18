@@ -24,7 +24,7 @@ public class UploadUseCase {
         } catch (MetadataServiceException me) {
             throw me;
         } catch (DocumentServiceException de) {
-          //  metadataService.getChunkDetailsForDelete(file.getName());
+          metadataService.getChunkDetailsForDelete(file.getName());
             throw de;
         }
         return response;
